@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #f4f4f4;
+    }
+
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    #chat-container .message {
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 60%;
+    }
+
+    .message.sent {
+      background: #d1e7dd;
+      align-self: flex-end;
+    }
+
+    .message.received {
+      background: #f8d7da;
+      align-self: flex-start;
+    }
+
+    #chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      background: #fff;
+    }
+
+    #chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #chat-input button {
+      padding: 10px 20px;
+      border: none;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #chat-input button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="chat-container"></div>
+  <div id="chat-input">
+    <input type="text" id="message" placeholder="Type your message..." />
+    <button id="send">Send</button>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chat-container');
+    const messageInput = document.getElementById('message');
+    const sendButton = document.getElementById('send');
+
+    // Connect to WebSocket server
+    const socket = new WebSocket('ws://localhost:8080');
+
+    // Add received messages to the chat container
+    socket.addEventListener('message', (event) => {
+      const message = document.createElement('div');
+      message.classList.add('message', 'received');
+      message.textContent = event.data;
+      chatContainer.appendChild(message);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+
+    // Send message to server
+    const sendMessage = () => {
+      const messageText = messageInput.value.trim();
+      if (messageText) {
+        const message = document.createElement('div');
+        message.classList.add('message', 'sent');
+        message.textContent = messageText;
+        chatContainer.appendChild(message);
+
+        socket.send(messageText);
+        messageInput.value = '';
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    };
+
+    // Send message on button click
+    sendButton.addEventListener('click', sendMessage);
+
+    // Send message on Enter key press
+    messageInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+
+</html>
